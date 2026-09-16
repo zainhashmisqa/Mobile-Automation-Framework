@@ -57,7 +57,11 @@ jobs:
         if: always()
         with:
           name: Framework unit tests
-          path: "target/surefire-reports/*.xml"
+          # Only the per-class TEST-*.xml files are JUnit-schema; surefire also writes
+          # testng-results.xml / testng-failed.xml in TestNG's own schema, and the java-junit
+          # parser throws (not just "no matches") if those are included in the glob --
+          # confirmed directly against this repo's CI run.
+          path: "target/surefire-reports/TEST-*.xml"
           reporter: java-junit
           fail-on-error: false # this step reports; it never gates the build itself
 
@@ -114,9 +118,14 @@ jobs:
           java-version: "21"
           cache: maven
 
-      # Same reason as codegen-drift-check: a fresh job has no compiled classes yet.
+      # Same reason as codegen-drift-check: a fresh job has no compiled classes yet. This job
+      # additionally needs test-compile (not just compile): exec:java's classpathScope is
+      # "test" so it can read config/config.properties, but that file only lands under
+      # target/test-classes once process-test-resources/test-compile actually runs --
+      # confirmed directly (compile alone left this step failing with "Missing required
+      # config resource: config/config.properties").
       - name: Compile
-        run: ./mvnw -q -B compile
+        run: ./mvnw -q -B compile test-compile
 
       - name: Deterministic run analysis
         # No credentials required. Narration only appears if ANTHROPIC_API_KEY is set as a repo
