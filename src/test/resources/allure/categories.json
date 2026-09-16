@@ -1,8 +1,8 @@
 [
   {
-    "name": "Self-healed (locator drift)",
+    "name": "Self-healed (locator drift, deterministic)",
     "matchedStatuses": ["passed", "failed", "broken"],
-    "messageRegex": ".*"
+    "messageRegex": ".*HEALED:.*"
   },
   {
     "name": "App interference (ad/dialog)",

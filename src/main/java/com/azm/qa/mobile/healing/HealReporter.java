@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.qameta.allure.Allure;
+import io.qameta.allure.model.StatusDetails;
 
 /**
  * Turns a successful heal into something visible: an Allure attachment AND label on the
@@ -44,6 +45,24 @@ public final class HealReporter {
 
         Allure.label("healed", "true");
         Allure.label("healCount", String.valueOf(countSoFar));
+
+        // Allure's own Categories tab can only match on status + a regex over
+        // statusDetails.message -- it has no way to filter on a custom label. Without this,
+        // categories.json's "Self-healed" entry has nothing distinctive to match against a
+        // passed test (which normally carries no message at all), so it either matches
+        // nothing or -- if written broadly -- matches everything. Writing a real marker here
+        // is what makes that category tab entry genuinely accurate instead of decorative.
+        String healNote = "HEALED: " + description + " via " + healedStrategy
+                + " (confidence " + String.format(java.util.Locale.ROOT, "%.2f", confidence) + ")";
+        Allure.getLifecycle().updateTestCase(testResult -> {
+            StatusDetails details = testResult.getStatusDetails();
+            if (details == null) {
+                details = new StatusDetails();
+                testResult.setStatusDetails(details);
+            }
+            String existing = details.getMessage();
+            details.setMessage(existing == null || existing.isBlank() ? healNote : existing + "\n" + healNote);
+        });
     }
 
     /** Read by the test listener at teardown, then reset for the next test on this thread. */

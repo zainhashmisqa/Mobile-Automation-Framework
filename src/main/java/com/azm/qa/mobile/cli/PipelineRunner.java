@@ -19,6 +19,7 @@ import com.azm.qa.mobile.healing.HealPolicy;
 import com.azm.qa.mobile.locators.LocatorDriftChecker;
 import com.azm.qa.mobile.locators.LocatorRepository;
 import com.azm.qa.mobile.locators.ScreenCrawler;
+import com.azm.qa.mobile.report.SelfHealingReportGenerator;
 import com.azm.qa.mobile.selfscore.FrameworkScorer;
 import com.azm.qa.mobile.selfscore.ScoreReport;
 import com.azm.qa.mobile.spec.MarkdownSpecParser;
@@ -62,6 +63,7 @@ public final class PipelineRunner {
             case "impacted" -> runImpacted(flags);
             case "analyze" -> runAnalyze(flags);
             case "selfscore" -> runSelfScore(flags);
+            case "heal-report" -> runHealReport(flags);
             default -> {
                 System.err.println("Unknown command: " + command);
                 printUsageAndExit();
@@ -208,6 +210,19 @@ public final class PipelineRunner {
         System.out.printf(java.util.Locale.ROOT, "%-38s %4.1f  vs  %4.1f%n", "OVERALL", ours.overall(), theirs.overall());
     }
 
+    /**
+     * Renders {@code self-healing-data/heal-events.jsonl} into a standalone, honestly-labeled
+     * static page -- deterministic fingerprint+cascade recoveries, explicitly not AI, so the
+     * report never reads as claiming a model call happened at runtime.
+     */
+    private static void runHealReport(Map<String, String> flags) {
+        Path ledgerPath = Path.of(flags.getOrDefault("ledger", "self-healing-data/heal-events.jsonl"));
+        Path outputFile = Path.of(flags.getOrDefault("out", "target/self-healing-report/index.html"));
+
+        new SelfHealingReportGenerator().generateToFile(ledgerPath, outputFile);
+        System.out.println("Wrote " + outputFile);
+    }
+
     private static List<Path> resolveSpecFiles(String explicitFile) {
         if (explicitFile != null) {
             Path file = Path.of(explicitFile);
@@ -272,6 +287,9 @@ public final class PipelineRunner {
                            10-criteria rubric (adapted from the web-framework assessment deck).
                            --repo alone scores that repo instead of the current directory;
                            --repo + --compare scores both and prints them side by side.
+                  heal-report [--ledger <f>] [--out <f>]    Render the heal ledger into a standalone,
+                           honestly-labeled static page (deterministic, not AI) at
+                           target/self-healing-report/index.html by default.
                 """);
         System.exit(1);
     }
