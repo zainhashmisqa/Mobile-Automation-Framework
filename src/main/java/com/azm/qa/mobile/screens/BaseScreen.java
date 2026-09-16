@@ -63,22 +63,30 @@ public abstract class BaseScreen {
     // ---------------------------------------------------------------- actions (self-healing)
 
     /** Preferred form: an author-declared, ranked fallback chain. */
-    protected void tap(List<LocatorCandidate> candidates, String description) {
+    public void tap(List<LocatorCandidate> candidates, String description) {
         guard.checkAndDismiss();
         WebElement element = healing.resolve(candidates, description, baselineFor(description));
         element.click();
         bootstrapIfAbsent(description, element);
     }
 
-    /** Single-locator form: heals via the heuristic cascade if it breaks. */
-    protected void tap(By locator, String description) {
+    /** Single-locator form: heals via the heuristic cascade if it breaks.
+     *
+     * <p>Public, not protected: generated test classes (a different package, not a
+     * {@code BaseScreen} subclass) call this and the other action/assertion methods below
+     * directly on their {@code screen} field -- see {@code StepVocabulary}/
+     * {@code TestNgCodeGenerator}, which emit {@code screen.tap(...)}/{@code
+     * screen.expectVisible(...)}/{@code screen.expectHidden(...)} verbatim. Confirmed directly:
+     * a {@code protected} modifier here fails generated-test compilation with "has protected
+     * access in BaseScreen" the first time a real spec uses a real locator. */
+    public void tap(By locator, String description) {
         guard.checkAndDismiss();
         WebElement element = healing.resolve(locator, description, baselineFor(description));
         element.click();
         bootstrapIfAbsent(description, element);
     }
 
-    protected void type(List<LocatorCandidate> candidates, String description, String value) {
+    public void type(List<LocatorCandidate> candidates, String description, String value) {
         guard.checkAndDismiss();
         WebElement element = healing.resolve(candidates, description, baselineFor(description));
         element.clear();
@@ -86,7 +94,7 @@ public abstract class BaseScreen {
         bootstrapIfAbsent(description, element);
     }
 
-    protected void type(By locator, String description, String value) {
+    public void type(By locator, String description, String value) {
         guard.checkAndDismiss();
         WebElement element = healing.resolve(locator, description, baselineFor(description));
         element.clear();
@@ -104,19 +112,19 @@ public abstract class BaseScreen {
 
     // ------------------------------------------------------------- assertions (never healed)
 
-    protected WebElement expectVisible(By locator) {
+    public WebElement expectVisible(By locator) {
         return waits.waitForVisible(locator);
     }
 
-    protected WebElement expectVisible(By locator, Duration timeout) {
+    public WebElement expectVisible(By locator, Duration timeout) {
         return waits.waitForVisible(locator, timeout);
     }
 
-    protected boolean expectHidden(By locator) {
+    public boolean expectHidden(By locator) {
         return waits.waitForInvisible(locator);
     }
 
-    protected boolean expectHidden(By locator, Duration timeout) {
+    public boolean expectHidden(By locator, Duration timeout) {
         return waits.waitForInvisible(locator, timeout);
     }
 

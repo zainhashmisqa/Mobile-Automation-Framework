@@ -1,0 +1,11 @@
+{
+  "SKIP" : {
+    "contentDesc" : "",
+    "text" : "SKIP",
+    "resourceId" : "cm.aptoide.pt:id/skip_button",
+    "className" : "android.widget.Button",
+    "indexInParent" : 1,
+    "centerXPercent" : 82,
+    "centerYPercent" : 94
+  }
+}
