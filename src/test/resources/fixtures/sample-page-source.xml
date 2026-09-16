@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hierarchy rotation="0">
+  <android.widget.FrameLayout index="0" text="" resource-id="" class="android.widget.FrameLayout"
+      package="com.titanstudio.pro" content-desc="" clickable="false" bounds="[0,0][1080,2280]">
+    <android.view.View index="0" text="" resource-id="" class="android.view.View"
+        package="com.titanstudio.pro" content-desc="" clickable="false" bounds="[0,0][1080,2280]">
+      <android.view.View index="0" text="" resource-id="" class="android.view.View"
+          package="com.titanstudio.pro" content-desc="Welcome tagline" clickable="false" bounds="[80,300][1000,420]"/>
+      <android.view.View index="1" text="" resource-id="" class="android.view.View"
+          package="com.titanstudio.pro" content-desc="Skip" clickable="true" bounds="[860,120][1040,220]"/>
+      <android.view.View index="2" text="Continue" resource-id="com.titanstudio.pro:id/continue_button"
+          package="com.titanstudio.pro" content-desc="" clickable="true" bounds="[80,1900][1000,2020]"/>
+    </android.view.View>
+  </android.widget.FrameLayout>
+</hierarchy>

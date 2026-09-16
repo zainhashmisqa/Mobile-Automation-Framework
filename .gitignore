@@ -1,0 +1,28 @@
+target/
+*.class
+
+# Local, machine-specific config -- never committed, see ConfigManager's precedence chain
+src/test/resources/config/config-local.properties
+.env
+
+# Runtime artefacts -- reproducible, not source
+allure-results/
+allure-report/
+allure-single/
+self-healing-data/
+*.log
+
+# The real Allure CLI distribution (downloaded locally, ~100 jars) -- a tool, not source
+.allure/
+
+# Claude Code's own machine-local tool-permission cache -- not project config.
+# .claude/commands/*.md ARE committed (see CLAUDE.md's Layout section) -- only this file isn't.
+.claude/settings.local.json
+
+# The APK is a local dev convenience, not a build input (app.path points to it explicitly)
+*.apk
+
+.idea/
+*.iml
+.vscode/
+.DS_Store

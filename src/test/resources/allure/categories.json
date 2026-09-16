@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Self-healed (locator drift)",
+    "matchedStatuses": ["passed", "failed", "broken"],
+    "messageRegex": ".*"
+  },
+  {
+    "name": "App interference (ad/dialog)",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": ".*(AdActivity|PlayCoreDialogWrapperActivity|interrupted).*"
+  },
+  {
+    "name": "Environment / session",
+    "matchedStatuses": ["broken"],
+    "messageRegex": ".*(SessionNotCreatedException|ANDROID_HOME|instrumentation process cannot be initialized).*"
+  },
+  {
+    "name": "Locator or timing",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*(NoSuchElementException|TimeoutException).*"
+  },
+  {
+    "name": "Framework error (not app under test)",
+    "matchedStatuses": ["broken"],
+    "messageRegex": ".*"
+  },
+  {
+    "name": "Assertion failure",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*"
+  }
+]

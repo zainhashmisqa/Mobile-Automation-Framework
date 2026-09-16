@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!--
+  Main suite. parallel="methods": each method gets its own AppiumDriver via DriverFactory's
+  ThreadLocal, and device.profile is scoped per-thread in ConfigManager (see BaseTest), so two
+  methods on two threads can genuinely drive two different device profiles at once, unlike a
+  process-wide profile, which would make raising thread-count unsafe. thread-count is set to 2
+  to match the two profiles committed in device-profiles.json (pixel7_api36 / pixel7_api34);
+  raise it only once that many real devices/emulators are actually attached.
+-->
+<suite name="AzmMobileSuite" parallel="methods" thread-count="2" verbose="1">
+
+    <listeners>
+        <listener class-name="com.azm.qa.mobile.listeners.TestListener"/>
+        <listener class-name="com.azm.qa.mobile.base.RetryTransformer"/>
+    </listeners>
+
+    <test name="Smoke">
+        <parameter name="device" value="pixel7_api36"/>
+        <classes>
+            <class name="com.azm.qa.mobile.smoke.AppLaunchTest"/>
+        </classes>
+    </test>
+
+    <test name="Proof">
+        <parameter name="device" value="pixel7_api34"/>
+        <classes>
+            <class name="com.azm.qa.mobile.proof.SelfHealingProofTest"/>
+        </classes>
+    </test>
+
+</suite>

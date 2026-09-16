@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>target/logs/mobile-automation.log</file>
+        <!--
+          SizeAndTimeBasedRollingPolicy, not plain TimeBasedRollingPolicy. The %i index token
+          and a maxFileSize cap are both meaningless on the plain time-based policy: it silently
+          refuses to start, and every log line falls through to console-only. This is the
+          policy that actually understands both.
+        -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>target/logs/mobile-automation.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>20MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <!-- Appium's own client logs at DEBUG are extremely chatty; keep them at WARN. -->
+    <logger name="io.appium" level="WARN"/>
+    <logger name="org.openqa.selenium" level="WARN"/>
+</configuration>

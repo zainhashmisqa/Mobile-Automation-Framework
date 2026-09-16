@@ -1,0 +1,231 @@
+name: Mobile Automation Pipeline
+
+# Execution is local-emulator-only for this project (see README) -- there is deliberately no
+# emulator boot in CI here, unlike a cloud-device setup. Everything below runs with NO device
+# attached, which is an honest scope: it proves the framework builds, its own unit tests pass,
+# generated code hasn't drifted from its specs, a run's results analyze cleanly, and (new in
+# this revision) that heal-rate stays within policy and results are actually visible to humans
+# -- in the PR, in a published Allure report, and in Slack on failure. The device suite itself
+# remains a manual dispatch lane for whoever has a self-hosted runner with a real emulator/
+# device wired up.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_device_suite:
+        description: "Run the full device suite (needs a self-hosted runner with an emulator/device attached)"
+        type: boolean
+        default: false
+
+# A new push to the same PR/branch supersedes the old one -- no point burning minutes on a
+# run whose results are already stale.
+concurrency:
+  group: mobile-pipeline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Compile
+        run: ./mvnw -B compile test-compile
+
+      - name: Framework unit tests (device-free)
+        # Only the classes that need no Appium session / no emulator: spec parser, codegen,
+        # fingerprint scoring, strategy cascade, test-impact selection, heal policy, data
+        # cleanup. Surefire XML lands under target/surefire-reports/ -- consumed below.
+        run: ./mvnw -B test -Dtest="com.azm.qa.mobile.framework.**" -DfailIfNoTests=false
+
+      # --- Reporting addition 1: JUnit results visible on the PR itself -----------------
+      # Without this, a failing unit test is a red X you have to click into logs to explain.
+      # dorny/test-reporter reads the same surefire XML Maven already writes and turns it
+      # into inline pass/fail annotations + a check-run summary. No new test dependency.
+      - name: Publish unit test results to the PR
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Framework unit tests
+          path: "target/surefire-reports/*.xml"
+          reporter: java-junit
+          fail-on-error: false # this step reports; it never gates the build itself
+
+      - name: Upload surefire results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-results
+          path: target/surefire-reports/
+          retention-days: 14
+
+  codegen-drift-check:
+    runs-on: ubuntu-latest
+    needs: build-and-unit-test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # Each job starts from a fresh checkout with no compiled classes -- exec:java needs
+      # PipelineRunner's class file to exist before it can run it. Confirmed directly: this
+      # step failed with a missing-main-class error without this.
+      - name: Compile
+        run: ./mvnw -q -B compile
+
+      - name: Regenerate every spec
+        run: |
+          for spec in specs/*.md; do
+            ./mvnw -q exec:java -Dexec.args="md --file $spec"
+          done
+
+      - name: Fail if regeneration produced a diff
+        # The whole point of a deterministic generator: the committed generated/ tree must be
+        # exactly what running `md` against the committed specs produces right now. A diff here
+        # means either a spec changed without regenerating, or the generator itself drifted.
+        run: |
+          git diff --exit-code -- src/test/java/com/azm/qa/mobile/generated/ \
+            || (echo "::error::Generated code is out of date -- run the md command locally and commit the result" && exit 1)
+
+  run-analysis:
+    runs-on: ubuntu-latest
+    needs: build-and-unit-test
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # Same reason as codegen-drift-check: a fresh job has no compiled classes yet.
+      - name: Compile
+        run: ./mvnw -q -B compile
+
+      - name: Deterministic run analysis
+        # No credentials required. Narration only appears if ANTHROPIC_API_KEY is set as a repo
+        # secret -- every other line of this step's output is unaffected by whether it is.
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: ./mvnw -q exec:java -Dexec.args="analyze"
+
+  device-suite:
+    # Manual-dispatch only, and only meaningful on a self-hosted runner with a real
+    # emulator/device already attached and Appium already running -- see README's
+    # "Running against a real device" section for that setup. ubuntu-latest here has neither.
+    if: github.event_name == 'workflow_dispatch' && inputs.run_device_suite
+    runs-on: self-hosted
+    needs: build-and-unit-test
+    # A self-hosted runner with an Android emulator attached is realistically Windows (this
+    # very machine qualifies) -- GitHub Actions defaults `run:` to PowerShell there, not bash,
+    # and every step below uses bash syntax (`for ... do ... done`, `set +e`, `${PIPESTATUS[0]}`).
+    # Without this, those steps would fail to parse under the default shell. Requires Git Bash
+    # (already present here) or WSL bash on the runner's PATH.
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # testng.xml's Smoke/Proof blocks each pin a specific device.profile with a specific
+      # udid (device-profiles.json's pixel7_api36 -> emulator-5554, pixel7_api34 ->
+      # emulator-5556). This job needs BOTH emulators booted with those exact serials, or
+      # whichever profile's udid doesn't match will fail its session creation. A runner with
+      # only one device attached should target testng-smoke.xml instead (no device
+      # parameter, attaches to whatever single device adb reports) -- confirmed directly
+      # against this app: -DsuiteFile=testng-smoke.xml is what actually got the first real
+      # device run green on a single-emulator machine.
+      - name: Run the full suite against the attached device(s)
+        run: ./mvnw -B test
+
+      # --- Reporting addition 2: heal-rate gate --------------------------------------
+      # A self-healing framework that silently absorbs every locator break isn't
+      # trustworthy -- it can hide a real regression as a "pass". `analyze` already reads
+      # self-healing-data/heal-events.jsonl and applies HealPolicy's configured threshold
+      # (healpolicy.maxHealRate in config.properties, not a CLI flag); this step just
+      # captures its verdict for the Slack message below. The exit code is captured
+      # explicitly (never relying on `set -e`/pipefail shell defaults) so this step can
+      # both report the rate AND still fail the job when the gate fails.
+      - name: Heal-rate policy gate
+        id: heal-gate
+        if: always()
+        run: |
+          set +e
+          ./mvnw -q exec:java -Dexec.args="analyze" | tee heal-summary.txt
+          analyze_exit=${PIPESTATUS[0]}
+          rate=$(grep -oE 'Heal rate [0-9]+\.[0-9]+' heal-summary.txt | grep -oE '[0-9]+\.[0-9]+' | tail -1)
+          echo "heal_rate=${rate:-unknown}" >> "$GITHUB_OUTPUT"
+          exit "$analyze_exit"
+
+      # --- Reporting addition 3: published Allure report -----------------------------
+      # Raw allure-results/ is JSON -- not human-readable without `allure serve` locally.
+      # This generates the static HTML report and publishes it to GitHub Pages so a
+      # reviewer gets a clickable link instead of an artifact zip to download and open.
+      # Requires Pages enabled once, at Settings > Pages > Source: gh-pages branch.
+      - name: Generate Allure HTML report
+        if: always()
+        uses: simple-elf/allure-report-action@v1.9
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+          keep_reports: 20
+
+      - name: Publish Allure report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+
+      - name: Upload Allure results + screenshots + heal data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            allure-results/
+            target/screenshots/
+            target/page-source/
+            self-healing-data/
+            heal-summary.txt
+          retention-days: 14
+
+      # --- Reporting addition 4: Slack failure notification ---------------------------
+      # Only fires on failure, and only if the webhook secret is actually configured --
+      # same "no-op without a key" honesty as AiNarrator. Silent when the secret is unset,
+      # never a broken step.
+      - name: Notify Slack on failure
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Mobile Automation device suite FAILED on `${{ github.ref_name }}` (heal rate: ${{ steps.heal-gate.outputs.heal_rate }}). Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }

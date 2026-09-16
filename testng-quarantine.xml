@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!--
+  Known-unstable tests, isolated so they never block the main suite. A test earns its way out
+  of this file by getting fixed, not by the tag rotting here forever; see CLAUDE.md.
+-->
+<suite name="AzmMobileQuarantineSuite" verbose="1">
+    <listeners>
+        <listener class-name="com.azm.qa.mobile.listeners.TestListener"/>
+    </listeners>
+    <test name="Quarantine">
+        <groups>
+            <run>
+                <include name="quarantine"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.azm.qa.mobile.*"/>
+        </packages>
+    </test>
+</suite>

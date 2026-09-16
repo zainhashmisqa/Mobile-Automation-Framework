@@ -1,0 +1,23 @@
+{
+  "default": {
+    "deviceName": "Android Emulator",
+    "emulator": true,
+    "notes": "Whatever single device adb reports. platformVersion is deliberately unset so Appium auto-detects it -- pinning a version here would make the profile fail on any other emulator."
+  },
+
+  "pixel7_api36": {
+    "deviceName": "Pixel_7_API_36",
+    "platformVersion": "16",
+    "udid": "emulator-5554",
+    "emulator": true,
+    "notes": "Newer API level. No systemPort/mjpegServerPort/chromedriverPort here on purpose -- DevicePool derives all three from the calling thread, so adding a profile never risks a port collision with an existing one."
+  },
+
+  "pixel7_api34": {
+    "deviceName": "Pixel_7_API_34",
+    "platformVersion": "14",
+    "udid": "emulator-5556",
+    "emulator": true,
+    "notes": "Older API level, deliberately version-distinct from pixel7_api36 so a parallel run is real fragmentation evidence rather than the same image twice."
+  }
+}
