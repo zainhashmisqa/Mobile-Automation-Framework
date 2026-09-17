@@ -162,6 +162,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-unit-test
     timeout-minutes: 30
+    # Needed for the gh-pages push below -- confirmed directly that this repo's default
+    # GITHUB_TOKEN permissions are read-only (push failed with a 403, "Write access to
+    # repository not granted") without this declared explicitly.
+    permissions:
+      contents: write
     steps:
       # lfs: true -- apk/aptoide-cm.aptoide.pt-9.22.5.3.apk is Git-LFS-tracked; a plain
       # checkout would leave a pointer file, not the real ~20MB APK uiautomator2 needs to
@@ -229,14 +234,15 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
+          # reactivecircus/android-emulator-runner runs EACH LINE of `script` as its own
+          # separate `sh -c` invocation, not as one cohesive multi-line script -- confirmed
+          # directly: a `for ... do ... done` split across lines here failed with "Syntax
+          # error: end of file unexpected (expecting done)" because only the `for` line's
+          # own `sh -c` call ever saw it. Every line below is a fully self-contained one-liner.
           script: |
             nohup appium --allow-insecure=uiautomator2:adb_shell > appium.log 2>&1 &
-            for i in $(seq 1 30); do
-              curl -sf http://127.0.0.1:4723/status > /dev/null && break
-              sleep 2
-            done
-            ./mvnw -B test -DsuiteFile=testng-smoke.xml -Denv=aptoide \
-              "-Dapp.path=${GITHUB_WORKSPACE}/apk/aptoide-cm.aptoide.pt-9.22.5.3.apk"
+            timeout 60 bash -c 'until curl -sf http://127.0.0.1:4723/status > /dev/null; do sleep 2; done'
+            ./mvnw -B test -DsuiteFile=testng-smoke.xml -Denv=aptoide "-Dapp.path=${GITHUB_WORKSPACE}/apk/aptoide-cm.aptoide.pt-9.22.5.3.apk"
 
       # --- Reporting addition 2: heal-rate gate --------------------------------------
       # A self-healing framework that silently absorbs every locator break isn't
