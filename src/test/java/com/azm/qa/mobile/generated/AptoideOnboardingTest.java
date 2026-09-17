@@ -33,7 +33,7 @@ public class AptoideOnboardingTest extends BaseTest {
         webViewContext = new WebViewContextUtils(driver);
     }
 
-    @Test(groups = {"regression", "smoke"}, description = "Skip button dismisses the real onboarding wizard")
+    @Test(groups = {"regression", "smoke"}, description = "Skip button dismisses the real onboarding wizard", retryAnalyzer = com.azm.qa.mobile.base.RetryAnalyzer.class)
     public void skipButtonDismissesTheRealOnboardingWizard() {
         AllureMeta.annotate(AllureMeta.Meta.of("APT-ONBOARD", "Aptoide Onboarding", "Skip button dismisses the real onboarding wizard", "CRITICAL", "The real, first-run onboarding wizard for cm.aptoide.pt (v9.22.5.3), crawled live from the actual app (see src/test/resources/locators/OnboardingScreen.json) -- no server-side login, no seeded data, nothing beyond what a fresh install genuinely shows."));
         appLifecycle.activate();

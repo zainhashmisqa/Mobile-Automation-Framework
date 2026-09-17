@@ -12,7 +12,6 @@
 
     <listeners>
         <listener class-name="com.azm.qa.mobile.listeners.TestListener"/>
-        <listener class-name="com.azm.qa.mobile.base.RetryTransformer"/>
     </listeners>
 
     <test name="Smoke">

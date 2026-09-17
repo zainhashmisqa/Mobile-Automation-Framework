@@ -94,11 +94,17 @@ public final class TestNgCodeGenerator {
         }
         scenario.tags.forEach(t -> groups.add(t.replace("@", "")));
 
+        // retryAnalyzer is set directly on the annotation, not via IAnnotationTransformer --
+        // confirmed directly that TestNG (through Maven Surefire's TestNG provider) never
+        // actually invokes a retryAnalyzer set that way, even though the transformer itself
+        // runs and the annotation mutation appears to succeed. Only an explicit
+        // `retryAnalyzer = ...` on the @Test annotation is honored.
         StringBuilder m = new StringBuilder();
         m.append("    @Test(groups = {")
                 .append(groups.stream().map(g -> "\"" + g + "\"").reduce((a, b) -> a + ", " + b).orElse(""))
                 .append("}, description = ")
                 .append(quote(scenario.title))
+                .append(", retryAnalyzer = com.azm.qa.mobile.base.RetryAnalyzer.class")
                 .append(")\n");
         m.append("    public void ").append(methodName).append("() {\n");
         m.append("        AllureMeta.annotate(AllureMeta.Meta.of(")

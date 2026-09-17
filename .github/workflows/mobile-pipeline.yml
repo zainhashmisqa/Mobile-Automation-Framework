@@ -215,7 +215,8 @@ jobs:
           target: google_apis
           arch: x86_64
           force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          # -memory 4096 -- see the real test-run step below for why.
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 4096
           disable-animations: true
           script: echo "AVD created and boot-cached"
 
@@ -232,7 +233,12 @@ jobs:
           target: google_apis
           arch: x86_64
           force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          # -memory 4096: confirmed directly that the default allocation left the emulator's own
+          # SystemUI process unresponsive under load ("System UI isn't responding" ANR overlaying
+          # the real, correctly-rendered onboarding screen) on a real dispatched run -- a resource
+          # constraint, not a locator/framework bug (the retry fix below is the second line of
+          # defense for whatever residual flake this doesn't fully eliminate).
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 4096
           disable-animations: true
           # reactivecircus/android-emulator-runner runs EACH LINE of `script` as its own
           # separate `sh -c` invocation, not as one cohesive multi-line script -- confirmed

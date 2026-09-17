@@ -10,6 +10,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.azm.qa.mobile.base.BaseTest;
+import com.azm.qa.mobile.base.RetryAnalyzer;
 import com.azm.qa.mobile.core.config.ConfigManager;
 import com.azm.qa.mobile.core.lifecycle.AppLifecycleUtils;
 import com.azm.qa.mobile.report.AllureMeta;
@@ -33,7 +34,8 @@ public class AppLaunchTest extends BaseTest {
     private static final Logger log = LoggerFactory.getLogger(AppLaunchTest.class);
     private static final Path DUMP_DIR = Path.of("target", "page-source");
 
-    @Test(groups = "smoke", description = "The app installs, launches, and reaches the foreground")
+    @Test(groups = "smoke", description = "The app installs, launches, and reaches the foreground",
+            retryAnalyzer = RetryAnalyzer.class)
     public void appLaunchesAndReachesForeground() {
         AllureMeta.annotate(AllureMeta.Meta.of("SMOKE-001", "App lifecycle", "Launch", "CRITICAL",
                 "com.titanstudio.pro installs (or is already installed), launches, and is the foreground app."));
@@ -55,7 +57,8 @@ public class AppLaunchTest extends BaseTest {
     }
 
     @Test(groups = "regression",
-            description = "Timed page-source snapshots for locator discovery -- captures the app's real UI once it has settled")
+            description = "Timed page-source snapshots for locator discovery -- captures the app's real UI once it has settled",
+            retryAnalyzer = RetryAnalyzer.class)
     public void dumpPageSourceForLocatorDiscovery() {
         AllureMeta.annotate(AllureMeta.Meta.of("SMOKE-002", "Locator discovery", "Splash transition", "MEDIUM",
                 "Captures page source at t=0/5/10/15s so a screen's real locators can be read off once "

@@ -83,7 +83,6 @@ public final class TestImpactSelector {
         xml.append("<suite name=\"ImpactedSuite\" verbose=\"1\">\n");
         xml.append("    <listeners>\n");
         xml.append("        <listener class-name=\"com.azm.qa.mobile.listeners.TestListener\"/>\n");
-        xml.append("        <listener class-name=\"com.azm.qa.mobile.base.RetryTransformer\"/>\n");
         xml.append("    </listeners>\n");
         xml.append("    <test name=\"Impacted\">\n");
         xml.append("        <classes>\n");

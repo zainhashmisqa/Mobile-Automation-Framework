@@ -9,6 +9,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.azm.qa.mobile.base.BaseTest;
+import com.azm.qa.mobile.base.RetryAnalyzer;
 import com.azm.qa.mobile.healing.ElementFingerprint;
 import com.azm.qa.mobile.healing.SelfHealingResolver;
 import com.azm.qa.mobile.locators.ScreenCrawler;
@@ -32,7 +33,8 @@ import io.appium.java_client.AppiumBy;
 public class SelfHealingProofTest extends BaseTest {
 
     @Test(groups = "regression",
-            description = "The heuristic cascade recovers the same element after its primary locator is deliberately broken")
+            description = "The heuristic cascade recovers the same element after its primary locator is deliberately broken",
+            retryAnalyzer = RetryAnalyzer.class)
     public void cascadeRecoversTheSameElementAfterPrimaryLocatorBreaks() {
         AllureMeta.annotate(AllureMeta.Meta.of("PROOF-001", "Self-healing", "Cascade recovery", "CRITICAL",
                 "Breaks a real, live element's locator on purpose and asserts the cascade "
