@@ -19,8 +19,12 @@ self-healing-data/
 # .claude/commands/*.md ARE committed (see CLAUDE.md's Layout section) -- only this file isn't.
 .claude/settings.local.json
 
-# The APK is a local dev convenience, not a build input (app.path points to it explicitly)
+# The APK is a local dev convenience, not a build input (app.path points to it explicitly).
+# apk/ is the one deliberate exception: a committed, Git-LFS-tracked copy of the real Aptoide
+# APK under test, used only by the CI device-suite job (which has no other way to obtain it --
+# Aptoide's own download button is JS-driven, no scrapeable stable direct-download URL).
 *.apk
+!apk/*.apk
 
 .idea/
 *.iml

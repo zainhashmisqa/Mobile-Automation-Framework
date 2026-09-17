@@ -152,22 +152,24 @@ jobs:
         run: ./mvnw -q exec:java -Dexec.args="analyze"
 
   device-suite:
-    # Manual-dispatch only, and only meaningful on a self-hosted runner with a real
-    # emulator/device already attached and Appium already running -- see README's
-    # "Running against a real device" section for that setup. ubuntu-latest here has neither.
+    # Manual-dispatch only (real emulator boots are slow/costly to run on every push) -- but
+    # unlike the self-hosted design this replaces, this now actually executes when dispatched.
+    # The self-hosted version had zero registered runners against this repo, ever -- this job
+    # never ran, full stop. ubuntu-latest + reactivecircus/android-emulator-runner boots a real,
+    # KVM-accelerated emulator directly on a GitHub-hosted Linux runner -- the same approach
+    # already proven working in the reference repo for this same assessment.
     if: github.event_name == 'workflow_dispatch' && inputs.run_device_suite
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: build-and-unit-test
-    # A self-hosted runner with an Android emulator attached is realistically Windows (this
-    # very machine qualifies) -- GitHub Actions defaults `run:` to PowerShell there, not bash,
-    # and every step below uses bash syntax (`for ... do ... done`, `set +e`, `${PIPESTATUS[0]}`).
-    # Without this, those steps would fail to parse under the default shell. Requires Git Bash
-    # (already present here) or WSL bash on the runner's PATH.
-    defaults:
-      run:
-        shell: bash
+    timeout-minutes: 30
     steps:
+      # lfs: true -- apk/aptoide-cm.aptoide.pt-9.22.5.3.apk is Git-LFS-tracked; a plain
+      # checkout would leave a pointer file, not the real ~20MB APK uiautomator2 needs to
+      # install.
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -175,16 +177,66 @@ jobs:
           java-version: "21"
           cache: maven
 
+      - name: Set up Node.js (for Appium)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Enable KVM group perms (hardware-accelerated emulator)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install Appium + uiautomator2 driver
+        run: |
+          npm install -g appium
+          appium driver install uiautomator2
+
+      - name: AVD snapshot cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34-google_apis-x86_64-v1
+
+      - name: Create AVD snapshot (cache miss only)
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: echo "AVD created and boot-cached"
+
       # testng.xml's Smoke/Proof blocks each pin a specific device.profile with a specific
       # udid (device-profiles.json's pixel7_api36 -> emulator-5554, pixel7_api34 ->
-      # emulator-5556). This job needs BOTH emulators booted with those exact serials, or
-      # whichever profile's udid doesn't match will fail its session creation. A runner with
-      # only one device attached should target testng-smoke.xml instead (no device
-      # parameter, attaches to whatever single device adb reports) -- confirmed directly
-      # against this app: -DsuiteFile=testng-smoke.xml is what actually got the first real
-      # device run green on a single-emulator machine.
-      - name: Run the full suite against the attached device(s)
-        run: ./mvnw -B test
+      # emulator-5556) for a two-emulator parallel run this single-emulator job can't provide.
+      # testng-smoke.xml has no device parameter, so it attaches to whatever single device adb
+      # reports -- confirmed directly against this app: this is what actually got the first
+      # real device run green on a single-emulator machine.
+      - name: Boot the emulator and run the real suite against Aptoide
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            nohup appium --allow-insecure=uiautomator2:adb_shell > appium.log 2>&1 &
+            for i in $(seq 1 30); do
+              curl -sf http://127.0.0.1:4723/status > /dev/null && break
+              sleep 2
+            done
+            ./mvnw -B test -DsuiteFile=testng-smoke.xml -Denv=aptoide \
+              "-Dapp.path=${GITHUB_WORKSPACE}/apk/aptoide-cm.aptoide.pt-9.22.5.3.apk"
 
       # --- Reporting addition 2: heal-rate gate --------------------------------------
       # A self-healing framework that silently absorbs every locator break isn't
@@ -199,7 +251,7 @@ jobs:
         if: always()
         run: |
           set +e
-          ./mvnw -q exec:java -Dexec.args="analyze" | tee heal-summary.txt
+          ./mvnw -q exec:java -Dexec.args="analyze" -Denv=aptoide | tee heal-summary.txt
           analyze_exit=${PIPESTATUS[0]}
           rate=$(grep -oE 'Heal rate [0-9]+\.[0-9]+' heal-summary.txt | grep -oE '[0-9]+\.[0-9]+' | tail -1)
           echo "heal_rate=${rate:-unknown}" >> "$GITHUB_OUTPUT"
