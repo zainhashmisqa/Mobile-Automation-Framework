@@ -30,3 +30,6 @@ self-healing-data/
 *.iml
 .vscode/
 .DS_Store
+
+# Scratch files used to build published Artifacts -- not project source
+.claude-scratch/

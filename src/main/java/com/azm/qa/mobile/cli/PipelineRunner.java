@@ -108,20 +108,33 @@ public final class PipelineRunner {
     }
 
     /**
-     * {@code --afterScreen <ScreenClass> --afterAction <method>}: within this one session,
-     * instantiate an already-committed screen object and invoke a real, existing no-arg method
-     * on it before crawling -- the only way to reach a second screen, since a fresh session
-     * always restarts at MainActivity ({@code noReset=false}). Never invents a navigation path:
-     * the class and method must already exist and compile.
+     * {@code --afterScreen <ScreenClass> --afterAction <method>} (single hop) or
+     * {@code --afterSteps <Screen1.method1;Screen2.method2;...>} (a chain): within this one
+     * session, instantiate already-committed screen objects and invoke real, existing no-arg
+     * methods on them before crawling -- the only way to reach a screen more than one real tap
+     * deep, since a fresh session always restarts at MainActivity ({@code noReset=false}).
+     * Never invents a navigation path: every class and method must already exist and compile.
      */
     private static void runCrawl(Map<String, String> flags) {
         String screenKey = flags.getOrDefault("screen", "unnamed-screen");
         AppiumDriver driver = DriverFactory.createDriver();
         try {
-            String afterScreen = flags.get("afterScreen");
-            String afterAction = flags.get("afterAction");
-            if (afterScreen != null && afterAction != null) {
-                navigateFirst(driver, afterScreen, afterAction);
+            String afterSteps = flags.get("afterSteps");
+            if (afterSteps != null) {
+                for (String step : afterSteps.split(";")) {
+                    String[] parts = step.trim().split("\\.", 2);
+                    if (parts.length != 2) {
+                        throw new IllegalArgumentException(
+                                "Malformed --afterSteps entry (expected Screen.method): " + step);
+                    }
+                    navigateFirst(driver, parts[0], parts[1]);
+                }
+            } else {
+                String afterScreen = flags.get("afterScreen");
+                String afterAction = flags.get("afterAction");
+                if (afterScreen != null && afterAction != null) {
+                    navigateFirst(driver, afterScreen, afterAction);
+                }
             }
 
             ScreenCrawler crawler = new ScreenCrawler(driver);
@@ -305,10 +318,12 @@ public final class PipelineRunner {
                   md       --file <spec.md> [--dry-run]     Generate TestNG classes from spec(s)
                   parse    --file <spec.md>                 Parse and print a spec's structure
                   crawl    --screen <name> [--afterScreen <ScreenClass> --afterAction <method>]
+                           [--afterSteps <Screen1.method1;Screen2.method2;...>]
                            Crawl the current live screen into locators/<name>.json. With
-                           --afterScreen/--afterAction, first invokes a real, existing no-arg
-                           method on an already-committed screen object (e.g. navigate past
-                           onboarding) before crawling -- never invents the navigation itself.
+                           --afterScreen/--afterAction (one hop) or --afterSteps (a chain),
+                           first invokes real, existing no-arg methods on already-committed
+                           screen objects (e.g. skip onboarding, then tap Search) before
+                           crawling -- never invents the navigation itself.
                   impacted --base <gitRef>                  Write testng-impacted.xml from a git diff
                   analyze  [--results <dir>] [--ledger <f>] [--warn-only] Deterministic run analysis
                            (+ optional AI narration) + a heal-rate gate that exits 1 above

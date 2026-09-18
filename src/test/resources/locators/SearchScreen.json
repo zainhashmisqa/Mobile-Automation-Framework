@@ -1,0 +1,74 @@
+{
+  "android.view.ViewGroup#cm.aptoide.pt:id/toolbar" : {
+    "contentDesc" : "",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/toolbar",
+    "className" : "android.view.ViewGroup",
+    "indexInParent" : 0,
+    "centerXPercent" : 50,
+    "centerYPercent" : 8
+  },
+  "Collapse" : {
+    "contentDesc" : "Collapse",
+    "text" : "",
+    "resourceId" : "",
+    "className" : "android.widget.ImageButton",
+    "indexInParent" : 0,
+    "centerXPercent" : 6,
+    "centerYPercent" : 8
+  },
+  "Search…" : {
+    "contentDesc" : "",
+    "text" : "Search…",
+    "resourceId" : "cm.aptoide.pt:id/search_src_text",
+    "className" : "android.widget.AutoCompleteTextView",
+    "indexInParent" : 0,
+    "centerXPercent" : 58,
+    "centerYPercent" : 8
+  },
+  "Home" : {
+    "contentDesc" : "Home",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/action_home",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 0,
+    "centerXPercent" : 10,
+    "centerYPercent" : 94
+  },
+  "Editorial" : {
+    "contentDesc" : "Editorial",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/action_curation",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 1,
+    "centerXPercent" : 30,
+    "centerYPercent" : 94
+  },
+  "Stores" : {
+    "contentDesc" : "Stores",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/action_stores",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 3,
+    "centerXPercent" : 70,
+    "centerYPercent" : 94
+  },
+  "Apps" : {
+    "contentDesc" : "Apps",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/action_apps",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 4,
+    "centerXPercent" : 90,
+    "centerYPercent" : 94
+  },
+  "id:cm.aptoide.pt:id/search_src_text" : {
+    "contentDesc" : "",
+    "text" : "aptoide",
+    "resourceId" : "cm.aptoide.pt:id/search_src_text",
+    "className" : "android.widget.AutoCompleteTextView",
+    "indexInParent" : 0,
+    "centerXPercent" : 53,
+    "centerYPercent" : 8
+  }
+}
