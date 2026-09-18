@@ -73,6 +73,21 @@ jobs:
           path: target/surefire-reports/
           retention-days: 14
 
+      # --- Reporting addition 6: unit-test Allure results, for device-suite to merge ----
+      # The framework unit tests already write real Allure JSON here (the allure-testng
+      # listener + AspectJ weaver are wired globally, not just for device tests). Uploading
+      # this lets device-suite combine it with its own real device results into ONE report
+      # covering all ~37 tests, instead of the published report only ever reflecting
+      # whichever job happened to generate it last -- confirmed directly this was the cause
+      # of the hosted report undercounting to 2-3 tests instead of the full suite.
+      - name: Upload unit-test Allure results (for device-suite to merge)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-unit
+          path: allure-results/
+          retention-days: 14
+
       # --- Reporting addition 5: Allure report link in the run summary -----------------
       # This job only runs device-free unit tests, so it deliberately does NOT regenerate or
       # republish gh-pages here -- that would silently overwrite the richer, manually-maintained
@@ -268,6 +283,19 @@ jobs:
           rate=$(grep -oE 'Heal rate [0-9]+\.[0-9]+' heal-summary.txt | grep -oE '[0-9]+\.[0-9]+' | tail -1)
           echo "heal_rate=${rate:-unknown}" >> "$GITHUB_OUTPUT"
           exit "$analyze_exit"
+
+      # --- Reporting addition 7: merge in the unit-test results before publishing ------
+      # Runs AFTER the heal-rate gate on purpose: that gate should judge the real device
+      # run's own heal rate, not have it diluted by ~34 unit tests that can never heal (they
+      # never touch a driver). Result files are UUID-named, so merging never collides --
+      # this just gives the published report the FULL suite (unit + device) instead of only
+      # whichever job happened to generate it last.
+      - name: Download and merge unit-test Allure results
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results-unit
+          path: allure-results
 
       # --- Reporting addition 3: published Allure report -----------------------------
       # Raw allure-results/ is JSON -- not human-readable without `allure serve` locally.
