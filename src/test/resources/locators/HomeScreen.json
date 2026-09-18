@@ -1,0 +1,101 @@
+{
+  "android.widget.ImageView#cm.aptoide.pt:id/user_actionbar_icon" : {
+    "contentDesc" : "",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/user_actionbar_icon",
+    "className" : "android.widget.ImageView",
+    "indexInParent" : 1,
+    "centerXPercent" : 93,
+    "centerYPercent" : 8
+  },
+  "GAMES" : {
+    "contentDesc" : "",
+    "text" : "GAMES",
+    "resourceId" : "cm.aptoide.pt:id/games_chip",
+    "className" : "android.widget.CheckBox",
+    "indexInParent" : 0,
+    "centerXPercent" : 25,
+    "centerYPercent" : 14
+  },
+  "APPS" : {
+    "contentDesc" : "",
+    "text" : "APPS",
+    "resourceId" : "cm.aptoide.pt:id/apps_chip",
+    "className" : "android.widget.CheckBox",
+    "indexInParent" : 1,
+    "centerXPercent" : 73,
+    "centerYPercent" : 14
+  },
+  "android.view.View#cm.aptoide.pt:id/action_button_skeleton" : {
+    "contentDesc" : "",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/action_button_skeleton",
+    "className" : "android.view.View",
+    "indexInParent" : 10,
+    "centerXPercent" : 83,
+    "centerYPercent" : 43
+  },
+  "MORE" : {
+    "contentDesc" : "",
+    "text" : "MORE",
+    "resourceId" : "cm.aptoide.pt:id/bundle_more",
+    "className" : "android.widget.Button",
+    "indexInParent" : 1,
+    "centerXPercent" : 89,
+    "centerYPercent" : 52
+  },
+  "android.widget.FrameLayout#cm.aptoide.pt:id/brick_app_item" : {
+    "contentDesc" : "",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/brick_app_item",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 0,
+    "centerXPercent" : 40,
+    "centerYPercent" : 65
+  },
+  "android.widget.FrameLayout#cm.aptoide.pt:id/brick_app_item (2)" : {
+    "contentDesc" : "",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/brick_app_item",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 1,
+    "centerXPercent" : 90,
+    "centerYPercent" : 65
+  },
+  "Editorial" : {
+    "contentDesc" : "Editorial",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/action_curation",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 1,
+    "centerXPercent" : 30,
+    "centerYPercent" : 94
+  },
+  "Search" : {
+    "contentDesc" : "Search",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/action_search",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 2,
+    "centerXPercent" : 50,
+    "centerYPercent" : 94
+  },
+  "Stores" : {
+    "contentDesc" : "Stores",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/action_stores",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 3,
+    "centerXPercent" : 70,
+    "centerYPercent" : 94
+  },
+  "Apps" : {
+    "contentDesc" : "Apps",
+    "text" : "",
+    "resourceId" : "cm.aptoide.pt:id/action_apps",
+    "className" : "android.widget.FrameLayout",
+    "indexInParent" : 4,
+    "centerXPercent" : 90,
+    "centerYPercent" : 94
+  }
+}

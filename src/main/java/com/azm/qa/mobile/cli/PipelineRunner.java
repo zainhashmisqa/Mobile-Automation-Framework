@@ -107,10 +107,23 @@ public final class PipelineRunner {
         }
     }
 
+    /**
+     * {@code --afterScreen <ScreenClass> --afterAction <method>}: within this one session,
+     * instantiate an already-committed screen object and invoke a real, existing no-arg method
+     * on it before crawling -- the only way to reach a second screen, since a fresh session
+     * always restarts at MainActivity ({@code noReset=false}). Never invents a navigation path:
+     * the class and method must already exist and compile.
+     */
     private static void runCrawl(Map<String, String> flags) {
         String screenKey = flags.getOrDefault("screen", "unnamed-screen");
         AppiumDriver driver = DriverFactory.createDriver();
         try {
+            String afterScreen = flags.get("afterScreen");
+            String afterAction = flags.get("afterAction");
+            if (afterScreen != null && afterAction != null) {
+                navigateFirst(driver, afterScreen, afterAction);
+            }
+
             ScreenCrawler crawler = new ScreenCrawler(driver);
             Map<String, ElementFingerprint> found = crawler.crawl();
 
@@ -122,6 +135,19 @@ public final class PipelineRunner {
             System.out.println("Crawled " + screenKey + ": " + found.size() + " element(s). Drift: " + drift.summary());
         } finally {
             DriverFactory.quitDriver();
+        }
+    }
+
+    private static void navigateFirst(AppiumDriver driver, String screenClassName, String actionMethod) {
+        try {
+            Class<?> screenClass = Class.forName("com.azm.qa.mobile.screens." + screenClassName);
+            Object screen = screenClass.getConstructor(AppiumDriver.class).newInstance(driver);
+            screenClass.getMethod(actionMethod).invoke(screen);
+            System.out.println("Navigated via " + screenClassName + "." + actionMethod + "()");
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalArgumentException(
+                    "Could not navigate via " + screenClassName + "." + actionMethod
+                            + "() -- both must already exist as a real, committed screen and method", e);
         }
     }
 
@@ -278,7 +304,11 @@ public final class PipelineRunner {
                 Commands:
                   md       --file <spec.md> [--dry-run]     Generate TestNG classes from spec(s)
                   parse    --file <spec.md>                 Parse and print a spec's structure
-                  crawl    --screen <name>                  Crawl the current live screen into locators/<name>.json
+                  crawl    --screen <name> [--afterScreen <ScreenClass> --afterAction <method>]
+                           Crawl the current live screen into locators/<name>.json. With
+                           --afterScreen/--afterAction, first invokes a real, existing no-arg
+                           method on an already-committed screen object (e.g. navigate past
+                           onboarding) before crawling -- never invents the navigation itself.
                   impacted --base <gitRef>                  Write testng-impacted.xml from a git diff
                   analyze  [--results <dir>] [--ledger <f>] [--warn-only] Deterministic run analysis
                            (+ optional AI narration) + a heal-rate gate that exits 1 above

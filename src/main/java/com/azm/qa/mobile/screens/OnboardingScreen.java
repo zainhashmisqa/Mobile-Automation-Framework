@@ -1,7 +1,11 @@
 package com.azm.qa.mobile.screens;
 
+import java.util.List;
+
 import io.appium.java_client.AppiumDriver;
 import org.openqa.selenium.By;
+
+import com.azm.qa.mobile.healing.LocatorCandidate;
 
 import io.appium.java_client.AppiumBy;
 
@@ -19,6 +23,18 @@ public final class OnboardingScreen extends BaseScreen {
 
     public OnboardingScreen(AppiumDriver driver) {
         super(driver);
+    }
+
+    /**
+     * Real navigation action, using the same committed resource-id/text fallback chain proven
+     * live in {@code AptoideOnboardingTest}. Public so {@code PipelineRunner --afterScreen} can
+     * invoke it within one session, before crawling whatever screen it lands on -- a fresh
+     * {@code crawl} invocation always restarts at MainActivity (noReset=false), so this is the
+     * only way to reach a second screen without inventing knowledge of it in advance.
+     */
+    public void tapSkip() {
+        tap(List.of(LocatorCandidate.resourceId("cm.aptoide.pt:id/skip_button"),
+                LocatorCandidate.textExact("SKIP")), "SKIP");
     }
 
     @Override

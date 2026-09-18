@@ -204,6 +204,24 @@ Still genuinely open:
   axis) — most tests don't call `AllureMeta.annotate(...)`, so their Allure entries carry no
   scenario ID/severity/description beyond the bare pass/fail.
 
+## Heal-rate gate and Slack notification (what they actually do)
+
+Both exist and are wired into `device-suite`'s "Heal-rate policy gate" step — confirmed
+directly against a real CI run, not assumed:
+
+- **`HealPolicy`** (`healing/HealPolicy.java`, 5 unit tests) reads `self-healing-data/heal-events.jsonl`
+  via `RunAnalyzer` and compares the run's heal rate against two configurable thresholds:
+  `healpolicy.warnHealRate` (default 5%) and `healpolicy.maxHealRate` (default 15%). Above the
+  fail threshold, `analyze` exits 1 and the CI step fails the job (unless run with
+  `--warn-only`). Verified on a real run: a genuine test failure (a hosted-emulator ANR, 0
+  heals) was correctly categorized as `locator-or-timing`, not miscounted as a heal, and
+  reported `Heal rate 0.0% is within normal bounds` — the gate doesn't fire on an unrelated
+  failure just because *something* failed.
+- **Slack notification** (`Notify Slack on failure` step) is real and conditioned on
+  `secrets.SLACK_WEBHOOK_URL` — confirmed via `gh secret list` that no such secret is
+  currently configured on this repo, so the step correctly no-ops, same honesty pattern as
+  `AiNarrator`. Add that secret to activate it; nothing else needs to change.
+
 ## Framework Architecture skill mapping
 
 | Skill (target) | Evidence |
