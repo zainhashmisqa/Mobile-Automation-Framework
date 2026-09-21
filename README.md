@@ -240,19 +240,6 @@ directly against a real CI run, not assumed:
   currently configured on this repo, so the step correctly no-ops, same honesty pattern as
   `AiNarrator`. Add that secret to activate it; nothing else needs to change.
 
-## What's honestly not done yet
-
-Closed since the framework was first scaffolded (kept here so the history is honest, not
-deleted and forgotten):
-- ~~The device suite hasn't run against the real app~~ — it now has, repeatedly, both locally
-  and in CI on a real, hosted-runner emulator.
-- ~~No screen objects exist for this app's real UI~~ — 3 real screens now exist, crawled from
-  the live app, each committed with its baseline.
-- ~~The device-suite CI lane needs a self-hosted runner~~ — it now runs on a GitHub-hosted
-  runner via `reactivecircus/android-emulator-runner`, no self-hosted registration needed.
-- ~~Allure publishing is manual~~ — `device-suite` auto-generates and auto-publishes on every
-  dispatch, merging in the unit-test job's results.
-
 Still genuinely open:
 - **Only one parallel-execution profile pair is defined** (`pixel7_api36`/`pixel7_api34` in
   `device-profiles.json`), and only one AVD exists on the current dev machine. `DevicePool`'s
