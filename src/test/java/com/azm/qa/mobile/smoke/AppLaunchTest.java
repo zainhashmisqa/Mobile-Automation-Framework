@@ -37,8 +37,10 @@ public class AppLaunchTest extends BaseTest {
     @Test(groups = "smoke", description = "The app installs, launches, and reaches the foreground",
             retryAnalyzer = RetryAnalyzer.class)
     public void appLaunchesAndReachesForeground() {
-        AllureMeta.annotate(AllureMeta.Meta.of("SMOKE-001", "App lifecycle", "Launch", "CRITICAL",
-                "com.titanstudio.pro installs (or is already installed), launches, and is the foreground app."));
+        AllureMeta.annotate(AllureMeta.Meta.of("SMOKE-001 / S-01", "App lifecycle", "Launch", "CRITICAL",
+                "com.titanstudio.pro installs (or is already installed), launches, and is the foreground app. "
+                        + "Also stands in for S-01 (cold start on a clean device) from the team's test-scenario "
+                        + "spec -- see capability/COVERAGE.md."));
 
         String appPackage = ConfigManager.require("app.package");
         AppLifecycleUtils lifecycle = new AppLifecycleUtils(driver, appPackage);

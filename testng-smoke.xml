@@ -14,6 +14,7 @@
         <packages>
             <package name="com.azm.qa.mobile.smoke"/>
             <package name="com.azm.qa.mobile.generated"/>
+            <package name="com.azm.qa.mobile.capability"/>
         </packages>
     </test>
 </suite>

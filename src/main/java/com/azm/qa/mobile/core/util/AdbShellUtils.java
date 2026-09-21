@@ -57,9 +57,17 @@ public final class AdbShellUtils {
         shell("am", "start", "-a", "android.intent.action.VIEW", "-d", uri, packageName);
     }
 
-    /** Foreground activity, e.g. "com.google.android.gms.ads.AdActivity" — used by InterferenceGuard. */
+    /**
+     * Foreground activity, e.g. "com.google.android.gms.ads.AdActivity" — used by
+     * InterferenceGuard. Deliberately {@code dumpsys window}, not {@code dumpsys window
+     * windows}: confirmed directly against a real API 34 device that the "windows" subcommand
+     * no longer prints {@code mCurrentFocus}/{@code mFocusedApp} at all on this API level, which
+     * made this method silently return "" instead of throwing — every caller (InterferenceGuard,
+     * DeepLinkUtils.landedInApp()) would read a real deep link that had genuinely landed as
+     * "nothing focused".
+     */
     public String currentFocusedActivity() {
-        String dump = shell("dumpsys", "window", "windows");
+        String dump = shell("dumpsys", "window");
         for (String line : dump.split("\\R")) {
             if (line.contains("mCurrentFocus") || line.contains("mFocusedApp")) {
                 return extractComponent(line);

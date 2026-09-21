@@ -264,6 +264,7 @@ jobs:
             nohup appium --allow-insecure=uiautomator2:adb_shell > appium.log 2>&1 &
             timeout 60 bash -c 'until curl -sf http://127.0.0.1:4723/status > /dev/null; do sleep 2; done'
             ./mvnw -B test -DsuiteFile=testng-smoke.xml -Denv=aptoide "-Dapp.path=${GITHUB_WORKSPACE}/apk/aptoide-cm.aptoide.pt-9.22.5.3.apk"
+            ./mvnw -B test -DsuiteFile=testng-capability.xml -Denv=aptoide "-Dapp.path=${GITHUB_WORKSPACE}/apk/aptoide-cm.aptoide.pt-9.22.5.3.apk"
 
       # --- Reporting addition 2: heal-rate gate --------------------------------------
       # A self-healing framework that silently absorbs every locator break isn't

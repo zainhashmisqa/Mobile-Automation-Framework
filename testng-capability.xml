@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!--
+  Scenario-mapped capability tests (S-01..S-81 per the team's test-scenario spec) that are NOT
+  already covered by the fast smoke tier. testng-smoke.xml already runs this same package
+  filtered to group="smoke" (CRITICAL/HIGH positives); this suite deliberately excludes that
+  group instead of re-running it, so device-suite's two suite invocations don't pay a full
+  session teardown/setup twice for the same method (confirmed directly: without this exclude,
+  OrientationTest, three of DeepLinkTest's methods, two of PermissionScenarioTest's, two of
+  NetworkConditionTest's, and BackgroundStateTest all ran twice). Override with:
+  mvnw test -DsuiteFile=testng-capability.xml
+-->
+<suite name="AzmMobileCapabilitySuite" verbose="1">
+    <listeners>
+        <listener class-name="com.azm.qa.mobile.listeners.TestListener"/>
+    </listeners>
+    <test name="Capability">
+        <groups>
+            <run>
+                <exclude name="smoke"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.azm.qa.mobile.capability"/>
+        </packages>
+    </test>
+</suite>
