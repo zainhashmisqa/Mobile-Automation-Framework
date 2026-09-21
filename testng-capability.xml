@@ -7,8 +7,10 @@
   group instead of re-running it, so device-suite's two suite invocations don't pay a full
   session teardown/setup twice for the same method (confirmed directly: without this exclude,
   OrientationTest, three of DeepLinkTest's methods, two of PermissionScenarioTest's, two of
-  NetworkConditionTest's, and BackgroundStateTest all ran twice). Override with:
-  mvnw test -DsuiteFile=testng-capability.xml
+  NetworkConditionTest's, and BackgroundStateTest all ran twice). Also excludes group=quarantine
+  -- see AccessibilityLocalizationTest's javadoc; its S-70 test runs via testng-quarantine.xml
+  instead, non-blocking, since its result is confirmed to vary between launches on real CI.
+  Override with: mvnw test -DsuiteFile=testng-capability.xml
 -->
 <suite name="AzmMobileCapabilitySuite" verbose="1">
     <listeners>
@@ -18,6 +20,7 @@
         <groups>
             <run>
                 <exclude name="smoke"/>
+                <exclude name="quarantine"/>
             </run>
         </groups>
         <packages>
