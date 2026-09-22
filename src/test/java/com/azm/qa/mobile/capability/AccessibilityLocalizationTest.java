@@ -18,8 +18,8 @@ import com.azm.qa.mobile.core.waits.AppReadyWaits;
 import com.azm.qa.mobile.healing.PageSourceNode;
 import com.azm.qa.mobile.report.AllureMeta;
 import com.azm.qa.mobile.screens.HomeScreen;
+import com.azm.qa.mobile.screens.OnboardingScreen;
 
-import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 
 /**
@@ -41,7 +41,7 @@ public class AccessibilityLocalizationTest extends BaseTest {
 
         lifecycle.activate();
         AppReadyWaits.waitForAppReady(driver);
-        home.tap(AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"cm.aptoide.pt:id/skip_button\")"), "Skip onboarding");
+        new OnboardingScreen(driver).tapSkip();
     }
 
     @AfterMethod(alwaysRun = true)

@@ -12,10 +12,9 @@ import com.azm.qa.mobile.core.config.ConfigManager;
 import com.azm.qa.mobile.core.lifecycle.AppLifecycleUtils;
 import com.azm.qa.mobile.core.waits.AppReadyWaits;
 import com.azm.qa.mobile.report.AllureMeta;
+import com.azm.qa.mobile.screens.HomeScreen;
+import com.azm.qa.mobile.screens.OnboardingScreen;
 import com.azm.qa.mobile.screens.SearchScreen;
-
-import io.appium.java_client.AppiumBy;
-import org.openqa.selenium.By;
 
 /**
  * S-51: background during an in-progress action, foreground after 30s, verify continuity.
@@ -25,15 +24,16 @@ import org.openqa.selenium.By;
  */
 public class BackgroundStateTest extends BaseTest {
 
-    private static final By SEARCH_FIELD = AppiumBy.androidUIAutomator(
-            "new UiSelector().resourceId(\"cm.aptoide.pt:id/search_src_text\")");
-
     private AppLifecycleUtils lifecycle;
+    private OnboardingScreen onboarding;
+    private HomeScreen home;
     private SearchScreen screen;
 
     @BeforeMethod(alwaysRun = true)
     public void wireHelpers() {
         lifecycle = new AppLifecycleUtils(driver, ConfigManager.require("app.package"));
+        onboarding = new OnboardingScreen(driver);
+        home = new HomeScreen(driver);
         screen = new SearchScreen(driver);
     }
 
@@ -48,9 +48,9 @@ public class BackgroundStateTest extends BaseTest {
 
         lifecycle.activate();
         AppReadyWaits.waitForAppReady(driver);
-        screen.tap(AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"cm.aptoide.pt:id/skip_button\")"), "Skip onboarding");
-        screen.tap(AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"cm.aptoide.pt:id/action_search\")"), "Search entry point");
-        screen.type(SEARCH_FIELD, "id:cm.aptoide.pt:id/search_src_text", "aptoide");
+        onboarding.tapSkip();
+        home.tapSearch();
+        screen.typeQuery("aptoide");
 
         lifecycle.backgroundFor(Duration.ofSeconds(30));
 
@@ -60,7 +60,7 @@ public class BackgroundStateTest extends BaseTest {
         // showed the search screen fully rendered with the typed text intact, a few hundred ms
         // after isDisplayed() had already returned false). expectVisible waits, so it doesn't
         // race the same way.
-        Assert.assertTrue(screen.expectVisible(SEARCH_FIELD).getText().contains("aptoide"),
+        Assert.assertTrue(screen.currentQueryText().contains("aptoide"),
                 "typed search text should survive the 30s background/foreground cycle");
         Assert.assertTrue(screen.isDisplayed(), "search screen should still be displayed after returning from background");
     }

@@ -21,6 +21,16 @@ public final class SearchScreen extends BaseScreen {
         super(driver);
     }
 
+    /** Types into the real search field through the self-healing action, not a raw locator in the caller. */
+    public void typeQuery(String query) {
+        type(SEARCH_FIELD, "id:cm.aptoide.pt:id/search_src_text", query);
+    }
+
+    /** Current text in the search field -- an ordinary waited assertion, never healed. */
+    public String currentQueryText() {
+        return expectVisible(SEARCH_FIELD).getText();
+    }
+
     @Override
     public boolean isDisplayed() {
         try {

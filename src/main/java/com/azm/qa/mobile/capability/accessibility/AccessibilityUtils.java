@@ -1,7 +1,7 @@
 package com.azm.qa.mobile.capability.accessibility;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +20,12 @@ import io.appium.java_client.android.AndroidDriver;
  * actually checkable here is TalkBack's real data source: whether interactive elements expose
  * a non-blank content-desc/text in the page source at all. See {@code capability/COVERAGE.md}
  * for that scope note.
+ *
+ * <p>The scanning logic ({@link #findClickableNodesMissingAccessibleName}) is a pure function
+ * over a {@link PageSourceNode} tree, deliberately kept separate from the driver-dependent read
+ * in {@link #clickableNodesMissingAccessibleName()} -- the same split {@code PageSourceParser}
+ * already uses so it's testable against a canned XML string with no emulator, not just exercised
+ * live.
  */
 public final class AccessibilityUtils {
 
@@ -35,19 +41,14 @@ public final class AccessibilityUtils {
 
     /** Clickable nodes in the current page source with no content-desc AND no text -- unreachable to TalkBack. */
     public List<PageSourceNode> clickableNodesMissingAccessibleName() {
-        PageSourceNode root = PageSourceParser.parse(driver.getPageSource());
-        List<PageSourceNode> offenders = new ArrayList<>();
-        collectOffenders(root, offenders);
-        return offenders;
+        return findClickableNodesMissingAccessibleName(PageSourceParser.parse(driver.getPageSource()));
     }
 
-    private void collectOffenders(PageSourceNode node, List<PageSourceNode> offenders) {
-        if (node.clickable && node.contentDesc.isBlank() && node.text.isBlank()) {
-            offenders.add(node);
-        }
-        for (PageSourceNode child : node.children) {
-            collectOffenders(child, offenders);
-        }
+    /** Pure: no driver dependency, so it's directly unit-testable against a parsed tree. */
+    public static List<PageSourceNode> findClickableNodesMissingAccessibleName(PageSourceNode root) {
+        return root.flatten().stream()
+                .filter(node -> node.clickable && node.contentDesc.isBlank() && node.text.isBlank())
+                .collect(Collectors.toList());
     }
 
     /** {@code settings put system font_scale <scale>} -- 1.0 is default, e.g. 1.3 for "Large" text. */

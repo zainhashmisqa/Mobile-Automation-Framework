@@ -14,8 +14,7 @@ import com.azm.qa.mobile.core.lifecycle.AppLifecycleUtils;
 import com.azm.qa.mobile.core.waits.AppReadyWaits;
 import com.azm.qa.mobile.report.AllureMeta;
 import com.azm.qa.mobile.screens.HomeScreen;
-
-import io.appium.java_client.AppiumBy;
+import com.azm.qa.mobile.screens.OnboardingScreen;
 
 /**
  * S-02/S-03: lifecycle and cold-start-timing scenarios that only need Home's already-known
@@ -24,11 +23,13 @@ import io.appium.java_client.AppiumBy;
 public class LaunchAndLifecycleTest extends BaseTest {
 
     private AppLifecycleUtils lifecycle;
+    private OnboardingScreen onboarding;
     private HomeScreen home;
 
     @BeforeMethod(alwaysRun = true)
     public void wireHelpers() {
         lifecycle = new AppLifecycleUtils(driver, ConfigManager.require("app.package"));
+        onboarding = new OnboardingScreen(driver);
         home = new HomeScreen(driver);
     }
 
@@ -44,7 +45,7 @@ public class LaunchAndLifecycleTest extends BaseTest {
 
         lifecycle.activate();
         AppReadyWaits.waitForAppReady(driver);
-        home.tap(AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"cm.aptoide.pt:id/skip_button\")"), "Skip onboarding");
+        onboarding.tapSkip();
         Assert.assertTrue(home.isDisplayed(), "home screen should be displayed before backgrounding");
 
         lifecycle.backgroundFor(Duration.ofSeconds(5));

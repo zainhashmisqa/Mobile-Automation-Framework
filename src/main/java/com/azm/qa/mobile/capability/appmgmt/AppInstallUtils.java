@@ -35,8 +35,12 @@ public final class AppInstallUtils {
 
     /** versionName from dumpsys, e.g. "9.22.5.3" -- used to confirm an upgrade actually changed the installed build. */
     public String installedVersionName() {
-        String dump = platform.shell("dumpsys", "package", appPackage);
-        for (String line : dump.split("\\R")) {
+        return parseVersionName(platform.shell("dumpsys", "package", appPackage));
+    }
+
+    /** Pure: no driver dependency, so it's directly unit-testable against a canned dumpsys dump. */
+    public static String parseVersionName(String dumpsysOutput) {
+        for (String line : dumpsysOutput.split("\\R")) {
             String trimmed = line.trim();
             if (trimmed.startsWith("versionName=")) {
                 return trimmed.substring("versionName=".length());

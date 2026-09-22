@@ -67,7 +67,8 @@ public final class VisualRegressionUtils {
         }
     }
 
-    private static double pixelDiffRatio(BufferedImage a, BufferedImage b) {
+    /** Public, not private: unit-tested directly against in-memory images, no driver/screenshot needed. */
+    public static double pixelDiffRatio(BufferedImage a, BufferedImage b) {
         int width = Math.min(a.getWidth(), b.getWidth());
         int height = Math.min(a.getHeight(), b.getHeight());
         if (width == 0 || height == 0) {

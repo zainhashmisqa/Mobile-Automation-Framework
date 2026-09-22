@@ -13,8 +13,7 @@ import com.azm.qa.mobile.core.lifecycle.AppLifecycleUtils;
 import com.azm.qa.mobile.core.waits.AppReadyWaits;
 import com.azm.qa.mobile.report.AllureMeta;
 import com.azm.qa.mobile.screens.HomeScreen;
-
-import io.appium.java_client.AppiumBy;
+import com.azm.qa.mobile.screens.OnboardingScreen;
 
 /**
  * S-80: baseline screenshot-diff on the home screen. Single device/density only -- the spec's
@@ -27,10 +26,12 @@ public class VisualRegressionTest extends BaseTest {
     private static final String BASELINE_KEY = "home-screen";
     private static final double MAX_DIFF_RATIO = 0.05;
 
+    private OnboardingScreen onboarding;
     private HomeScreen home;
 
     @BeforeMethod(alwaysRun = true)
     public void wireHelpers() {
+        onboarding = new OnboardingScreen(driver);
         home = new HomeScreen(driver);
     }
 
@@ -46,7 +47,7 @@ public class VisualRegressionTest extends BaseTest {
         AppLifecycleUtils lifecycle = new AppLifecycleUtils(driver, ConfigManager.require("app.package"));
         lifecycle.activate();
         AppReadyWaits.waitForAppReady(driver);
-        home.tap(AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"cm.aptoide.pt:id/skip_button\")"), "Skip onboarding");
+        onboarding.tapSkip();
         Assert.assertTrue(home.isDisplayed(), "home screen should be displayed before capturing a screenshot");
 
         TakesScreenshot shooter = (TakesScreenshot) driver;

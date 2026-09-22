@@ -1,6 +1,5 @@
 package com.azm.qa.mobile.capability;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.ScreenOrientation;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -14,9 +13,10 @@ import com.azm.qa.mobile.core.config.ConfigManager;
 import com.azm.qa.mobile.core.lifecycle.AppLifecycleUtils;
 import com.azm.qa.mobile.core.waits.AppReadyWaits;
 import com.azm.qa.mobile.report.AllureMeta;
+import com.azm.qa.mobile.screens.HomeScreen;
+import com.azm.qa.mobile.screens.OnboardingScreen;
 import com.azm.qa.mobile.screens.SearchScreen;
 
-import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 
 /**
@@ -28,15 +28,16 @@ import io.appium.java_client.android.AndroidDriver;
  */
 public class OrientationTest extends BaseTest {
 
-    private static final By SEARCH_FIELD = AppiumBy.androidUIAutomator(
-            "new UiSelector().resourceId(\"cm.aptoide.pt:id/search_src_text\")");
-
     private OrientationUtils orientation;
+    private OnboardingScreen onboarding;
+    private HomeScreen home;
     private SearchScreen screen;
 
     @BeforeMethod(alwaysRun = true)
     public void wireHelpers() {
         orientation = new OrientationUtils((AndroidDriver) driver);
+        onboarding = new OnboardingScreen(driver);
+        home = new HomeScreen(driver);
         screen = new SearchScreen(driver);
     }
 
@@ -66,9 +67,9 @@ public class OrientationTest extends BaseTest {
         lifecycle.activate();
         AppReadyWaits.waitForAppReady(driver);
 
-        screen.tap(AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"cm.aptoide.pt:id/skip_button\")"), "Skip onboarding");
-        screen.tap(AppiumBy.androidUIAutomator("new UiSelector().resourceId(\"cm.aptoide.pt:id/action_search\")"), "Search entry point");
-        screen.type(SEARCH_FIELD, "id:cm.aptoide.pt:id/search_src_text", "aptoide");
+        onboarding.tapSkip();
+        home.tapSearch();
+        screen.typeQuery("aptoide");
 
         Assert.assertEquals(orientation.currentOrientation(), ScreenOrientation.PORTRAIT,
                 "search screen should start portrait");
@@ -78,7 +79,7 @@ public class OrientationTest extends BaseTest {
         Assert.assertTrue(orientation.isRotationConfirmed(ScreenOrientation.LANDSCAPE),
                 "device should report landscape from both the driver and adb's rotation state");
         Assert.assertTrue(screen.isDisplayed(), "search screen should still be displayed after rotating to landscape");
-        Assert.assertTrue(screen.expectVisible(SEARCH_FIELD).getText().contains("aptoide"),
+        Assert.assertTrue(screen.currentQueryText().contains("aptoide"),
                 "typed search text should survive the rotation");
 
         orientation.rotateTo(ScreenOrientation.PORTRAIT);

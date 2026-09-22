@@ -76,7 +76,8 @@ public final class AdbShellUtils {
         return "";
     }
 
-    private static String extractComponent(String line) {
+    /** Public, not private: unit-tested directly against real captured dumpsys lines, no driver needed. */
+    public static String extractComponent(String line) {
         int slash = line.lastIndexOf('/');
         if (slash < 0) {
             return "";
